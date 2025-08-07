@@ -1,4 +1,4 @@
-import { api } from "encore.dev/api";
+import { api, APIError } from "encore.dev/api";
 import { GenerateStudyRequest, StudyGuide } from "./types";
 import { callOpenAI } from "./ai";
 
@@ -6,6 +6,10 @@ import { callOpenAI } from "./ai";
 export const generateStudy = api<GenerateStudyRequest, StudyGuide>(
   { expose: true, method: "POST", path: "/devotional/study" },
   async (req) => {
+    if (!req.passageRef || !req.passageText) {
+      throw APIError.invalidArgument("passageRef and passageText are required");
+    }
+
     const prompt = `
 **Papel:** Você é um "Mentor de Estudo Bíblico", focado na transformação da mente através do entendimento profundo da Palavra.
 
@@ -22,28 +26,39 @@ ${req.passageText}
    * Referências cruzadas (AT e NT)
    * 2 perguntas de aplicação pessoal
 
-Responda em formato JSON com as chaves: "insight", "crossReferences" (array), "applicationQuestions" (array).
+Responda APENAS em formato JSON válido com as chaves: "insight", "crossReferences" (array), "applicationQuestions" (array). Não inclua texto adicional antes ou depois do JSON.
 `;
 
-    const response = await callOpenAI(prompt);
-    
     try {
-      const parsed = JSON.parse(response);
-      return {
-        insight: parsed.insight,
-        crossReferences: parsed.crossReferences,
-        applicationQuestions: parsed.applicationQuestions
-      };
+      const response = await callOpenAI(prompt);
+      
+      try {
+        const parsed = JSON.parse(response);
+        
+        if (!parsed.insight || !Array.isArray(parsed.crossReferences) || !Array.isArray(parsed.applicationQuestions)) {
+          throw new Error("Invalid response structure");
+        }
+        
+        return {
+          insight: parsed.insight,
+          crossReferences: parsed.crossReferences,
+          applicationQuestions: parsed.applicationQuestions
+        };
+      } catch (parseError) {
+        return {
+          insight: "Esta passagem revela o coração amoroso de Deus e Seu desejo de ter um relacionamento íntimo conosco. Ela nos convida a confiar em Sua bondade e a viver de acordo com Seus propósitos.",
+          crossReferences: ["João 3:16", "Romanos 8:28", "Jeremias 29:11", "Filipenses 4:13"],
+          applicationQuestions: [
+            "Como posso aplicar esta verdade em minha vida diária?",
+            "Que mudança específica Deus está me chamando a fazer baseado nesta passagem?"
+          ]
+        };
+      }
     } catch (error) {
-      const lines = response.split('\n').filter(line => line.trim());
-      return {
-        insight: lines[0] || "Esta passagem revela o caráter de Deus e Seu amor por nós.",
-        crossReferences: lines.slice(1, 3) || ["João 3:16", "Romanos 8:28"],
-        applicationQuestions: lines.slice(3, 5) || [
-          "Como posso aplicar esta verdade em minha vida hoje?",
-          "Que mudança Deus está me chamando a fazer?"
-        ]
-      };
+      if (error instanceof APIError) {
+        throw error;
+      }
+      throw APIError.internal(`Failed to generate study guide: ${error}`);
     }
   }
 );

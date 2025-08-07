@@ -1,4 +1,4 @@
-import { api } from "encore.dev/api";
+import { api, APIError } from "encore.dev/api";
 import { GenerateWorshipRequest, WorshipGuide } from "./types";
 import { callOpenAI } from "./ai";
 
@@ -6,6 +6,10 @@ import { callOpenAI } from "./ai";
 export const generateWorship = api<GenerateWorshipRequest, WorshipGuide>(
   { expose: true, method: "POST", path: "/devotional/worship" },
   async (req) => {
+    if (!req.passageRef || !req.passageText || !req.studyInsights) {
+      throw APIError.invalidArgument("passageRef, passageText, and studyInsights are required");
+    }
+
     const prompt = `
 **Papel:** Você é um "Líder de Adoração", guiando outros a responderem à iniciativa de Deus.
 
@@ -24,23 +28,34 @@ ${req.studyInsights}
 1. Chamado à Adoração
 2. Ato de Celebração e Envio
 
-Responda em formato JSON com as chaves: "call", "celebration".
+Responda APENAS em formato JSON válido com as chaves: "call", "celebration". Não inclua texto adicional antes ou depois do JSON.
 `;
 
-    const response = await callOpenAI(prompt);
-    
     try {
-      const parsed = JSON.parse(response);
-      return {
-        call: parsed.call,
-        celebration: parsed.celebration
-      };
+      const response = await callOpenAI(prompt);
+      
+      try {
+        const parsed = JSON.parse(response);
+        
+        if (!parsed.call || !parsed.celebration) {
+          throw new Error("Invalid response structure");
+        }
+        
+        return {
+          call: parsed.call,
+          celebration: parsed.celebration
+        };
+      } catch (parseError) {
+        return {
+          call: "Venha adorar ao Senhor com gratidão e alegria! Ele é digno de todo louvor e honra. Que nossos corações se encham de reverência diante de Sua majestade e amor.",
+          celebration: "Celebre a bondade de Deus em sua vida! Compartilhe Seu amor com outros através de suas palavras e ações. Vá em paz, sabendo que Ele está com você sempre."
+        };
+      }
     } catch (error) {
-      const lines = response.split('\n').filter(line => line.trim());
-      return {
-        call: lines[0] || "Venha adorar ao Senhor com gratidão e alegria.",
-        celebration: lines[1] || "Celebre a bondade de Deus e compartilhe Seu amor com outros."
-      };
+      if (error instanceof APIError) {
+        throw error;
+      }
+      throw APIError.internal(`Failed to generate worship guide: ${error}`);
     }
   }
 );
