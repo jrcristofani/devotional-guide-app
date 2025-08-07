@@ -1,6 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import { CompileDevotionalRequest, DevotionalPlan } from "./types";
-import { callOpenAI } from "./ai";
+import { callGemini } from "./ai";
 import { normalizeReference } from "./reference-normalizer";
 import { bible } from "~encore/clients";
 
@@ -42,7 +42,7 @@ Para o passageText, forneça o texto completo da passagem bíblica ${normalizedR
 `;
 
         try {
-          const response = await callOpenAI(prompt);
+          const response = await callGemini(prompt);
           const parsed = JSON.parse(response);
           
           if (parsed.passageText) {
@@ -58,7 +58,7 @@ Para o passageText, forneça o texto completo da passagem bíblica ${normalizedR
       let title = `Devocional: ${normalizedRef}`;
       try {
         const titlePrompt = `Crie um título inspirador e conciso para um devocional baseado na passagem bíblica ${normalizedRef}. Responda apenas com o título, sem aspas ou formatação adicional.`;
-        const titleResponse = await callOpenAI(titlePrompt);
+        const titleResponse = await callGemini(titlePrompt);
         if (titleResponse && titleResponse.trim()) {
           title = titleResponse.trim().replace(/['"]/g, '');
         }

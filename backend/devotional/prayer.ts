@@ -1,6 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import { GeneratePrayerRequest, PrayerGuide } from "./types";
-import { callOpenAI } from "./ai";
+import { callGemini } from "./ai";
 import { normalizeReference } from "./reference-normalizer";
 
 // Generates a prayer guide based on a biblical passage and meditation insights.
@@ -38,7 +38,7 @@ Não inclua texto adicional antes ou depois do JSON.
 `;
 
       try {
-        const response = await callOpenAI(prompt);
+        const response = await callGemini(prompt);
         
         try {
           const parsed = JSON.parse(response);

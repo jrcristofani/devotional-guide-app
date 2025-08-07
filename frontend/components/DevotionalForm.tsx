@@ -86,10 +86,10 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
       
       // Handle specific error types
       if (error?.message) {
-        if (error.message.includes("OpenAI API key not configured")) {
-          errorMessage = "Chave da API OpenAI não configurada. Vá para Infrastructure → Secrets e adicione sua chave como 'OpenAIKey'.";
-        } else if (error.message.includes("Invalid OpenAI API key")) {
-          errorMessage = "Chave da API OpenAI inválida. Verifique se a chave está correta na configuração de secrets.";
+        if (error.message.includes("Gemini API key not configured")) {
+          errorMessage = "Chave da API Gemini não configurada. Vá para Infrastructure → Secrets e adicione sua chave como 'GEMINI_API_KEY'.";
+        } else if (error.message.includes("Invalid Gemini API key")) {
+          errorMessage = "Chave da API Gemini inválida. Verifique se a chave está correta na configuração de secrets.";
         } else if (error.message.includes("rate limit")) {
           errorMessage = "Limite de uso da API atingido. Tente novamente em alguns minutos.";
         } else if (error.message.includes("Network error") || error.message.includes("fetch")) {
@@ -102,8 +102,11 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
       // Handle HTTP status codes
       if (error?.status) {
         switch (error.status) {
-          case 401:
-            errorMessage = "Erro de autenticação. Verifique a configuração da chave da API OpenAI.";
+          case 400:
+            errorMessage = "Requisição inválida. Verifique a referência bíblica fornecida.";
+            break;
+          case 403:
+            errorMessage = "Erro de autenticação. Verifique a configuração da chave da API Gemini.";
             break;
           case 429:
             errorMessage = "Muitas requisições. Aguarde alguns minutos antes de tentar novamente.";
