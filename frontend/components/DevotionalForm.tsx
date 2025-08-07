@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, BookOpen, AlertCircle, CheckCircle } from 'lucide-react';
+import { Loader2, BookOpen } from 'lucide-react';
 import backend from '~backend/client';
 import type { DevotionalPlan } from '~backend/devotional/types';
 
@@ -17,25 +17,7 @@ interface DevotionalFormProps {
 export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGenerating }: DevotionalFormProps) {
   const [passageRef, setPassageRef] = useState('');
   const [currentStep, setCurrentStep] = useState('');
-  const [bibleStatus, setBibleStatus] = useState<{ isAvailable: boolean; message: string } | null>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    checkBibleStatus();
-  }, []);
-
-  const checkBibleStatus = async () => {
-    try {
-      const status = await backend.bible.checkBibleStatus();
-      setBibleStatus(status);
-    } catch (error) {
-      console.error('Error checking Bible status:', error);
-      setBibleStatus({
-        isAvailable: false,
-        message: "Erro ao verificar status da Bíblia"
-      });
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,39 +128,6 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Bible Status Card */}
-      {bibleStatus && (
-        <Card className={`border ${
-          bibleStatus.isAvailable ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'
-        }`}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              {bibleStatus.isAvailable ? (
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-yellow-600" />
-              )}
-              <p className={`text-sm font-medium ${
-                bibleStatus.isAvailable ? 'text-green-800' : 'text-yellow-800'
-              }`}>
-                {bibleStatus.message}
-              </p>
-            </div>
-            {bibleStatus.isAvailable && (
-              <p className="text-xs text-green-700 mt-1">
-                Os devocionais incluirão automaticamente os textos bíblicos completos.
-              </p>
-            )}
-            {!bibleStatus.isAvailable && (
-              <p className="text-xs text-yellow-700 mt-1">
-                Os devocionais funcionarão normalmente, mas sem os textos bíblicos completos. 
-                Faça upload da Bíblia NVI para uma experiência completa.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

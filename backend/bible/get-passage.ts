@@ -42,7 +42,7 @@ async function loadBibleData(): Promise<BibleData> {
   try {
     const exists = await bibleBucket.exists("nvi.json");
     if (!exists) {
-      throw APIError.notFound("Arquivo da Bíblia NVI não encontrado. Faça upload do arquivo nvi.json no bucket bible-storage.");
+      throw APIError.notFound("Arquivo da Bíblia NVI não encontrado. Coloque o arquivo nvi.json na pasta bibles do bucket.");
     }
 
     const buffer = await bibleBucket.download("nvi.json");
