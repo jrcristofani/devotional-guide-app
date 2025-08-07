@@ -172,7 +172,6 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
               <Label htmlFor="passageText">Texto da Passagem</Label>
               <Textarea
                 id="passageText"
-                placeholder="Cole aqui o texto completo da passagem bíblica..."
                 value={passageText}
                 onChange={(e) => setPassageText(e.target.value)}
                 disabled={isGenerating}
