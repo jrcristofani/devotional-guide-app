@@ -41,40 +41,40 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
       // Step 1: Generate meditation guide
       setCurrentStep('Gerando guia de meditação...');
       const meditation = await backend.devotional.generateMeditation({
-        passageRef,
-        passageText,
+        passageRef: passageRef.trim(),
+        passageText: passageText.trim(),
       });
 
       // Step 2: Generate prayer guide
       setCurrentStep('Criando guia de oração...');
       const meditationInsights = `${meditation.preparation}\n${meditation.lectio}\n${meditation.reflection.join('\n')}`;
       const prayer = await backend.devotional.generatePrayer({
-        passageRef,
-        passageText,
+        passageRef: passageRef.trim(),
+        passageText: passageText.trim(),
         meditationInsights,
       });
 
       // Step 3: Generate study guide
       setCurrentStep('Desenvolvendo guia de estudo...');
       const study = await backend.devotional.generateStudy({
-        passageRef,
-        passageText,
+        passageRef: passageRef.trim(),
+        passageText: passageText.trim(),
       });
 
       // Step 4: Generate worship guide
       setCurrentStep('Preparando guia de adoração...');
       const studyInsights = `${study.insight}\n${study.crossReferences.join('\n')}\n${study.applicationQuestions.join('\n')}`;
       const worship = await backend.devotional.generateWorship({
-        passageRef,
-        passageText,
+        passageRef: passageRef.trim(),
+        passageText: passageText.trim(),
         studyInsights,
       });
 
       // Step 5: Compile devotional
       setCurrentStep('Compilando plano devocional...');
       const devotionalPlan = await backend.devotional.compileDevotional({
-        passageRef,
-        passageText,
+        passageRef: passageRef.trim(),
+        passageText: passageText.trim(),
         meditation,
         prayer,
         study,
@@ -87,18 +87,40 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
         title: "Devocional criado com sucesso!",
         description: "Seu plano devocional personalizado está pronto.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating devotional:', error);
       
       let errorMessage = "Ocorreu um erro ao criar seu plano devocional. Tente novamente.";
       
-      if (error instanceof Error) {
-        if (error.message.includes("OpenAI API key")) {
-          errorMessage = "Chave da API OpenAI não configurada. Entre em contato com o administrador.";
+      // Handle specific error types
+      if (error?.message) {
+        if (error.message.includes("OpenAI API key not configured")) {
+          errorMessage = "Chave da API OpenAI não configurada. Vá para Infrastructure → Secrets e adicione sua chave como 'OpenAIKey'.";
+        } else if (error.message.includes("Invalid OpenAI API key")) {
+          errorMessage = "Chave da API OpenAI inválida. Verifique se a chave está correta na configuração de secrets.";
         } else if (error.message.includes("rate limit")) {
           errorMessage = "Limite de uso da API atingido. Tente novamente em alguns minutos.";
-        } else if (error.message.includes("network") || error.message.includes("fetch")) {
+        } else if (error.message.includes("Network error") || error.message.includes("fetch")) {
           errorMessage = "Erro de conexão. Verifique sua internet e tente novamente.";
+        } else if (error.message.includes("unavailable")) {
+          errorMessage = "Serviço temporariamente indisponível. Tente novamente em alguns minutos.";
+        }
+      }
+      
+      // Handle HTTP status codes
+      if (error?.status) {
+        switch (error.status) {
+          case 401:
+            errorMessage = "Erro de autenticação. Verifique a configuração da chave da API OpenAI.";
+            break;
+          case 429:
+            errorMessage = "Muitas requisições. Aguarde alguns minutos antes de tentar novamente.";
+            break;
+          case 500:
+          case 502:
+          case 503:
+            errorMessage = "Erro interno do servidor. Tente novamente em alguns minutos.";
+            break;
         }
       }
       

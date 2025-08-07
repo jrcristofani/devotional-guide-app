@@ -6,11 +6,12 @@ import { callOpenAI } from "./ai";
 export const generateMeditation = api<GenerateMeditationRequest, MeditationGuide>(
   { expose: true, method: "POST", path: "/devotional/meditation" },
   async (req) => {
-    if (!req.passageRef || !req.passageText) {
-      throw APIError.invalidArgument("passageRef and passageText are required");
-    }
+    try {
+      if (!req.passageRef || !req.passageText) {
+        throw APIError.invalidArgument("passageRef and passageText are required");
+      }
 
-    const prompt = `
+      const prompt = `
 **Papel:** Você é um "Guia Contemplativo", especialista na disciplina da Meditação Cristã e da Solitude.
 
 **Objetivo:** Guiar o usuário em um exercício prático de meditação sobre a passagem "${req.passageRef}". O texto completo da passagem para sua análise é:
@@ -30,26 +31,37 @@ Seu guia deve se basear estritamente neste texto.
 Responda APENAS em formato JSON válido com as chaves: "preparation", "lectio", "reflection" (array de strings). Não inclua texto adicional antes ou depois do JSON.
 `;
 
-    try {
-      const response = await callOpenAI(prompt);
-      
-      // Try to parse JSON response
       try {
-        const parsed = JSON.parse(response);
+        const response = await callOpenAI(prompt);
         
-        // Validate the response structure
-        if (!parsed.preparation || !parsed.lectio || !Array.isArray(parsed.reflection)) {
-          throw new Error("Invalid response structure");
+        // Try to parse JSON response
+        try {
+          const parsed = JSON.parse(response);
+          
+          // Validate the response structure
+          if (!parsed.preparation || !parsed.lectio || !Array.isArray(parsed.reflection)) {
+            throw new Error("Invalid response structure");
+          }
+          
+          return {
+            preparation: parsed.preparation,
+            lectio: parsed.lectio,
+            reflection: parsed.reflection
+          };
+        } catch (parseError) {
+          // Fallback: create a structured response from the text
+          return {
+            preparation: "Encontre um lugar silencioso para estar com Deus. Respire profundamente e aquiete seu coração, preparando-se para ouvir Sua voz através da Sua Palavra.",
+            lectio: "Leia a passagem lentamente, palavra por palavra. Permita que cada frase penetre em seu coração. Leia novamente, prestando atenção às palavras que mais tocam sua alma.",
+            reflection: [
+              "Que palavra ou frase desta passagem mais fala ao meu coração hoje?",
+              "Como Deus está me convidando a responder a esta verdade?",
+              "Que aspecto do caráter de Deus esta passagem revela?"
+            ]
+          };
         }
-        
-        return {
-          preparation: parsed.preparation,
-          lectio: parsed.lectio,
-          reflection: parsed.reflection
-        };
-      } catch (parseError) {
-        // Fallback: create a structured response from the text
-        const lines = response.split('\n').filter(line => line.trim());
+      } catch (aiError) {
+        // If AI call fails, return fallback content
         return {
           preparation: "Encontre um lugar silencioso para estar com Deus. Respire profundamente e aquiete seu coração, preparando-se para ouvir Sua voz através da Sua Palavra.",
           lectio: "Leia a passagem lentamente, palavra por palavra. Permita que cada frase penetre em seu coração. Leia novamente, prestando atenção às palavras que mais tocam sua alma.",

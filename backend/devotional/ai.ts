@@ -4,13 +4,13 @@ import { APIError } from "encore.dev/api";
 const openAIKey = secret("OpenAIKey");
 
 export async function callOpenAI(prompt: string): Promise<string> {
-  const apiKey = openAIKey();
-  
-  if (!apiKey) {
-    throw APIError.internal("OpenAI API key not configured");
-  }
-
   try {
+    const apiKey = openAIKey();
+    
+    if (!apiKey || apiKey.trim() === "") {
+      throw APIError.internal("OpenAI API key not configured. Please set the OpenAIKey secret in the Infrastructure tab.");
+    }
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -32,7 +32,16 @@ export async function callOpenAI(prompt: string): Promise<string> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw APIError.internal(`OpenAI API error: ${response.status} ${response.statusText} - ${errorText}`);
+      
+      if (response.status === 401) {
+        throw APIError.unauthenticated("Invalid OpenAI API key. Please check your OpenAIKey secret configuration.");
+      } else if (response.status === 429) {
+        throw APIError.resourceExhausted("OpenAI API rate limit exceeded. Please try again later.");
+      } else if (response.status >= 500) {
+        throw APIError.unavailable("OpenAI API is currently unavailable. Please try again later.");
+      } else {
+        throw APIError.internal(`OpenAI API error: ${response.status} ${response.statusText} - ${errorText}`);
+      }
     }
 
     const data = await response.json();
@@ -46,6 +55,12 @@ export async function callOpenAI(prompt: string): Promise<string> {
     if (error instanceof APIError) {
       throw error;
     }
+    
+    // Handle network errors
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw APIError.unavailable("Network error: Unable to connect to OpenAI API. Please check your internet connection.");
+    }
+    
     throw APIError.internal(`Failed to call OpenAI API: ${error}`);
   }
 }

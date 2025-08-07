@@ -6,11 +6,12 @@ import { callOpenAI } from "./ai";
 export const generateWorship = api<GenerateWorshipRequest, WorshipGuide>(
   { expose: true, method: "POST", path: "/devotional/worship" },
   async (req) => {
-    if (!req.passageRef || !req.passageText || !req.studyInsights) {
-      throw APIError.invalidArgument("passageRef, passageText, and studyInsights are required");
-    }
+    try {
+      if (!req.passageRef || !req.passageText || !req.studyInsights) {
+        throw APIError.invalidArgument("passageRef, passageText, and studyInsights are required");
+      }
 
-    const prompt = `
+      const prompt = `
 **Papel:** Você é um "Líder de Adoração", guiando outros a responderem à iniciativa de Deus.
 
 **Objetivo:** Ajudar o usuário a transformar seu estudo em um ato de adoração e celebração, baseado em "${req.passageRef}" e nos insights do estudo. O texto da passagem bíblica é:
@@ -31,21 +32,27 @@ ${req.studyInsights}
 Responda APENAS em formato JSON válido com as chaves: "call", "celebration". Não inclua texto adicional antes ou depois do JSON.
 `;
 
-    try {
-      const response = await callOpenAI(prompt);
-      
       try {
-        const parsed = JSON.parse(response);
+        const response = await callOpenAI(prompt);
         
-        if (!parsed.call || !parsed.celebration) {
-          throw new Error("Invalid response structure");
+        try {
+          const parsed = JSON.parse(response);
+          
+          if (!parsed.call || !parsed.celebration) {
+            throw new Error("Invalid response structure");
+          }
+          
+          return {
+            call: parsed.call,
+            celebration: parsed.celebration
+          };
+        } catch (parseError) {
+          return {
+            call: "Venha adorar ao Senhor com gratidão e alegria! Ele é digno de todo louvor e honra. Que nossos corações se encham de reverência diante de Sua majestade e amor.",
+            celebration: "Celebre a bondade de Deus em sua vida! Compartilhe Seu amor com outros através de suas palavras e ações. Vá em paz, sabendo que Ele está com você sempre."
+          };
         }
-        
-        return {
-          call: parsed.call,
-          celebration: parsed.celebration
-        };
-      } catch (parseError) {
+      } catch (aiError) {
         return {
           call: "Venha adorar ao Senhor com gratidão e alegria! Ele é digno de todo louvor e honra. Que nossos corações se encham de reverência diante de Sua majestade e amor.",
           celebration: "Celebre a bondade de Deus em sua vida! Compartilhe Seu amor com outros através de suas palavras e ações. Vá em paz, sabendo que Ele está com você sempre."
