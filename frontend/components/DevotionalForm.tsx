@@ -4,8 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, BookOpen, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, BookOpen } from 'lucide-react';
 import backend from '~backend/client';
 import type { DevotionalPlan } from '~backend/devotional/types';
 
@@ -129,14 +128,6 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          <strong>Importante:</strong> Para usar esta aplicação, você precisa configurar sua chave da API OpenAI 
-          na aba Infrastructure. Vá para Infrastructure → Secrets e adicione sua chave como "OpenAIKey".
-        </AlertDescription>
-      </Alert>
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
