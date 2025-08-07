@@ -145,7 +145,7 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
           </CardTitle>
           <CardDescription>
             Insira uma referência bíblica para gerar um plano devocional completo com 
-            meditação, oração, estudo e adoração.
+            meditação, oração, estudo e adoração. Você pode usar abreviações como "Sl 23", "Jo 3:16", "1 Co 13", etc.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -154,11 +154,14 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
               <Label htmlFor="passageRef">Referência Bíblica</Label>
               <Input
                 id="passageRef"
-                placeholder="Ex: João 3:16, Salmos 23:1-6, Romanos 8:28"
+                placeholder="Ex: João 3:16, Sl 23:1-6, Rm 8:28, 1 Co 13, Ap 21:4"
                 value={passageRef}
                 onChange={(e) => setPassageRef(e.target.value)}
                 disabled={isGenerating}
               />
+              <p className="text-sm text-gray-500">
+                Aceita abreviações: Sl = Salmos, Jo = João, Rm = Romanos, 1 Co = 1 Coríntios, etc.
+              </p>
             </div>
 
             {isGenerating && currentStep && (

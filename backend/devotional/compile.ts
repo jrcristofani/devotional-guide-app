@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { CompileDevotionalRequest, DevotionalPlan } from "./types";
 import { callOpenAI } from "./ai";
+import { normalizeReference } from "./reference-normalizer";
 
 // Compiles all devotional components into a cohesive plan.
 export const compileDevotional = api<CompileDevotionalRequest, DevotionalPlan>(
@@ -11,12 +12,14 @@ export const compileDevotional = api<CompileDevotionalRequest, DevotionalPlan>(
         throw APIError.invalidArgument("All devotional components are required");
       }
 
+      const normalizedRef = normalizeReference(req.passageRef);
+
       const prompt = `
 **Papel:** Você é um "Editor Devocional".
 
 **Objetivo:** Compilar os guias de Meditação, Oração, Estudo e Adoração em um único plano devocional coeso e bem formatado.
 
-**Passagem:** ${req.passageRef}
+**Passagem:** ${normalizedRef}
 
 **Tarefa:**
 1. Criar um título geral para o devocional, baseado na passagem bíblica
@@ -26,11 +29,11 @@ export const compileDevotional = api<CompileDevotionalRequest, DevotionalPlan>(
 
 Responda APENAS em formato JSON válido com as chaves: "title", "passageText". Não inclua texto adicional antes ou depois do JSON.
 
-Para o título, crie apenas um título inspirador e conciso para este devocional baseado na passagem ${req.passageRef}.
-Para o passageText, forneça o texto completo da passagem bíblica ${req.passageRef}.
+Para o título, crie apenas um título inspirador e conciso para este devocional baseado na passagem ${normalizedRef}.
+Para o passageText, forneça o texto completo da passagem bíblica ${normalizedRef}.
 `;
 
-      let title = `Devocional: ${req.passageRef}`;
+      let title = `Devocional: ${normalizedRef}`;
       let passageText = "";
       
       try {
@@ -45,14 +48,14 @@ Para o passageText, forneça o texto completo da passagem bíblica ${req.passage
         }
       } catch (aiError) {
         // If AI fails, use fallback title and empty text
-        title = `Devocional: ${req.passageRef}`;
+        title = `Devocional: ${normalizedRef}`;
         passageText = "";
       }
 
       return {
         title,
         passage: {
-          reference: req.passageRef,
+          reference: normalizedRef,
           text: passageText
         },
         meditation: req.meditation,

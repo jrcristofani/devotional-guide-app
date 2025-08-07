@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { GeneratePrayerRequest, PrayerGuide } from "./types";
 import { callOpenAI } from "./ai";
+import { normalizeReference } from "./reference-normalizer";
 
 // Generates a prayer guide based on a biblical passage and meditation insights.
 export const generatePrayer = api<GeneratePrayerRequest, PrayerGuide>(
@@ -11,10 +12,12 @@ export const generatePrayer = api<GeneratePrayerRequest, PrayerGuide>(
         throw APIError.invalidArgument("passageRef and meditationInsights are required");
       }
 
+      const normalizedRef = normalizeReference(req.passageRef);
+
       const prompt = `
 **Papel:** Você é um "Facilitador de Oração", que guia outros a uma conversa transformadora com Deus.
 
-**Objetivo:** Guiar o usuário em uma oração pessoal baseada na passagem "${req.passageRef}" e nos insights da sua meditação.
+**Objetivo:** Guiar o usuário em uma oração pessoal baseada na passagem "${normalizedRef}" e nos insights da sua meditação.
 
 **Contexto da Meditação:** Os insights gerados na etapa anterior foram:
 

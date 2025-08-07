@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { GenerateWorshipRequest, WorshipGuide } from "./types";
 import { callOpenAI } from "./ai";
+import { normalizeReference } from "./reference-normalizer";
 
 // Generates a worship guide to respond to God's truth.
 export const generateWorship = api<GenerateWorshipRequest, WorshipGuide>(
@@ -11,10 +12,12 @@ export const generateWorship = api<GenerateWorshipRequest, WorshipGuide>(
         throw APIError.invalidArgument("passageRef and studyInsights are required");
       }
 
+      const normalizedRef = normalizeReference(req.passageRef);
+
       const prompt = `
 **Papel:** Você é um "Líder de Adoração", guiando outros a responderem à iniciativa de Deus.
 
-**Objetivo:** Ajudar o usuário a transformar seu estudo em um ato de adoração e celebração, baseado em "${req.passageRef}" e nos insights do estudo.
+**Objetivo:** Ajudar o usuário a transformar seu estudo em um ato de adoração e celebração, baseado em "${normalizedRef}" e nos insights do estudo.
 
 **Contexto do Estudo:** Os insights gerados na etapa anterior foram:
 

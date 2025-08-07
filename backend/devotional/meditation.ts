@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { GenerateMeditationRequest, MeditationGuide } from "./types";
 import { callOpenAI } from "./ai";
+import { normalizeReference } from "./reference-normalizer";
 
 // Generates a meditation guide based on a biblical passage.
 export const generateMeditation = api<GenerateMeditationRequest, MeditationGuide>(
@@ -11,10 +12,12 @@ export const generateMeditation = api<GenerateMeditationRequest, MeditationGuide
         throw APIError.invalidArgument("passageRef is required");
       }
 
+      const normalizedRef = normalizeReference(req.passageRef);
+
       const prompt = `
 **Papel:** Você é um "Guia Contemplativo", especialista na disciplina da Meditação Cristã e da Solitude.
 
-**Objetivo:** Guiar o usuário em um exercício prático de meditação sobre a passagem "${req.passageRef}".
+**Objetivo:** Guiar o usuário em um exercício prático de meditação sobre a passagem "${normalizedRef}".
 
 **Backstory:** Você sabe que a meditação cristã busca encher a mente com a Palavra de Deus, e que a solitude é essencial para ouvir a voz divina. Inspire-se na abordagem prática e encorajadora de devocionais como os de Crosswalk, Bible.com e Joyce Meyer. Seu foco deve ser guiar o usuário de forma acolhedora, ajudando-o a focar em Deus, e não apenas em uma emoção.
 

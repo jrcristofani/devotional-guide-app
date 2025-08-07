@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { GenerateStudyRequest, StudyGuide } from "./types";
 import { callOpenAI } from "./ai";
+import { normalizeReference } from "./reference-normalizer";
 
 // Generates a biblical study guide for deeper understanding.
 export const generateStudy = api<GenerateStudyRequest, StudyGuide>(
@@ -11,10 +12,12 @@ export const generateStudy = api<GenerateStudyRequest, StudyGuide>(
         throw APIError.invalidArgument("passageRef is required");
       }
 
+      const normalizedRef = normalizeReference(req.passageRef);
+
       const prompt = `
 **Papel:** Você é um "Mentor de Estudo Bíblico", focado na transformação da mente através do entendimento profundo da Palavra.
 
-**Objetivo:** Aprofundar a compreensão do usuário sobre a passagem "${req.passageRef}", conectando-a com a narrativa bíblica mais ampla.
+**Objetivo:** Aprofundar a compreensão do usuário sobre a passagem "${normalizedRef}", conectando-a com a narrativa bíblica mais ampla.
 
 **Backstory:** Você acredita que o estudo da Bíblia deve levar à transformação da mente. Inspire-se na clareza e profundidade acessível de materiais de estudo como os encontrados em Today Devotional e Crosswalk.
 
