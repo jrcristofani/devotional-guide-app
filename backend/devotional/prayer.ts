@@ -7,16 +7,14 @@ export const generatePrayer = api<GeneratePrayerRequest, PrayerGuide>(
   { expose: true, method: "POST", path: "/devotional/prayer" },
   async (req) => {
     try {
-      if (!req.passageRef || !req.passageText || !req.meditationInsights) {
-        throw APIError.invalidArgument("passageRef, passageText, and meditationInsights are required");
+      if (!req.passageRef || !req.meditationInsights) {
+        throw APIError.invalidArgument("passageRef and meditationInsights are required");
       }
 
       const prompt = `
 **Papel:** Você é um "Facilitador de Oração", que guia outros a uma conversa transformadora com Deus.
 
-**Objetivo:** Guiar o usuário em uma oração pessoal baseada na passagem "${req.passageRef}" e nos insights da sua meditação. O texto da passagem para sua referência é:
-
-${req.passageText}
+**Objetivo:** Guiar o usuário em uma oração pessoal baseada na passagem "${req.passageRef}" e nos insights da sua meditação.
 
 **Contexto da Meditação:** Os insights gerados na etapa anterior foram:
 

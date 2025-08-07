@@ -7,16 +7,14 @@ export const generateWorship = api<GenerateWorshipRequest, WorshipGuide>(
   { expose: true, method: "POST", path: "/devotional/worship" },
   async (req) => {
     try {
-      if (!req.passageRef || !req.passageText || !req.studyInsights) {
-        throw APIError.invalidArgument("passageRef, passageText, and studyInsights are required");
+      if (!req.passageRef || !req.studyInsights) {
+        throw APIError.invalidArgument("passageRef and studyInsights are required");
       }
 
       const prompt = `
 **Papel:** Você é um "Líder de Adoração", guiando outros a responderem à iniciativa de Deus.
 
-**Objetivo:** Ajudar o usuário a transformar seu estudo em um ato de adoração e celebração, baseado em "${req.passageRef}" e nos insights do estudo. O texto da passagem bíblica é:
-
-${req.passageText}
+**Objetivo:** Ajudar o usuário a transformar seu estudo em um ato de adoração e celebração, baseado em "${req.passageRef}" e nos insights do estudo.
 
 **Contexto do Estudo:** Os insights gerados na etapa anterior foram:
 

@@ -35,13 +35,15 @@ export function DevotionalDisplay({ devotionalPlan, onStartNew }: DevotionalDisp
             </Badge>
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
-            <p className="text-gray-700 leading-relaxed italic">
-              "{devotionalPlan.passage.text}"
-            </p>
-          </div>
-        </CardContent>
+        {devotionalPlan.passage.text && (
+          <CardContent>
+            <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
+              <p className="text-gray-700 leading-relaxed italic">
+                "{devotionalPlan.passage.text}"
+              </p>
+            </div>
+          </CardContent>
+        )}
       </Card>
 
       <div className="grid gap-8">

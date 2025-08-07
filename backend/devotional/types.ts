@@ -36,29 +36,24 @@ export interface DevotionalPlan {
 
 export interface GenerateMeditationRequest {
   passageRef: string;
-  passageText: string;
 }
 
 export interface GeneratePrayerRequest {
   passageRef: string;
-  passageText: string;
   meditationInsights: string;
 }
 
 export interface GenerateStudyRequest {
   passageRef: string;
-  passageText: string;
 }
 
 export interface GenerateWorshipRequest {
   passageRef: string;
-  passageText: string;
   studyInsights: string;
 }
 
 export interface CompileDevotionalRequest {
   passageRef: string;
-  passageText: string;
   meditation: MeditationGuide;
   prayer: PrayerGuide;
   study: StudyGuide;

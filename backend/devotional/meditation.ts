@@ -7,18 +7,14 @@ export const generateMeditation = api<GenerateMeditationRequest, MeditationGuide
   { expose: true, method: "POST", path: "/devotional/meditation" },
   async (req) => {
     try {
-      if (!req.passageRef || !req.passageText) {
-        throw APIError.invalidArgument("passageRef and passageText are required");
+      if (!req.passageRef) {
+        throw APIError.invalidArgument("passageRef is required");
       }
 
       const prompt = `
 **Papel:** Você é um "Guia Contemplativo", especialista na disciplina da Meditação Cristã e da Solitude.
 
-**Objetivo:** Guiar o usuário em um exercício prático de meditação sobre a passagem "${req.passageRef}". O texto completo da passagem para sua análise é:
-
-${req.passageText}
-
-Seu guia deve se basear estritamente neste texto.
+**Objetivo:** Guiar o usuário em um exercício prático de meditação sobre a passagem "${req.passageRef}".
 
 **Backstory:** Você sabe que a meditação cristã busca encher a mente com a Palavra de Deus, e que a solitude é essencial para ouvir a voz divina. Inspire-se na abordagem prática e encorajadora de devocionais como os de Crosswalk, Bible.com e Joyce Meyer. Seu foco deve ser guiar o usuário de forma acolhedora, ajudando-o a focar em Deus, e não apenas em uma emoção.
 

@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, BookOpen, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -18,17 +17,16 @@ interface DevotionalFormProps {
 
 export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGenerating }: DevotionalFormProps) {
   const [passageRef, setPassageRef] = useState('');
-  const [passageText, setPassageText] = useState('');
   const [currentStep, setCurrentStep] = useState('');
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!passageRef.trim() || !passageText.trim()) {
+    if (!passageRef.trim()) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha a referência e o texto da passagem bíblica.",
+        title: "Campo obrigatório",
+        description: "Por favor, preencha a referência da passagem bíblica.",
         variant: "destructive",
       });
       return;
@@ -42,7 +40,6 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
       setCurrentStep('Gerando guia de meditação...');
       const meditation = await backend.devotional.generateMeditation({
         passageRef: passageRef.trim(),
-        passageText: passageText.trim(),
       });
 
       // Step 2: Generate prayer guide
@@ -50,7 +47,6 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
       const meditationInsights = `${meditation.preparation}\n${meditation.lectio}\n${meditation.reflection.join('\n')}`;
       const prayer = await backend.devotional.generatePrayer({
         passageRef: passageRef.trim(),
-        passageText: passageText.trim(),
         meditationInsights,
       });
 
@@ -58,7 +54,6 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
       setCurrentStep('Desenvolvendo guia de estudo...');
       const study = await backend.devotional.generateStudy({
         passageRef: passageRef.trim(),
-        passageText: passageText.trim(),
       });
 
       // Step 4: Generate worship guide
@@ -66,7 +61,6 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
       const studyInsights = `${study.insight}\n${study.crossReferences.join('\n')}\n${study.applicationQuestions.join('\n')}`;
       const worship = await backend.devotional.generateWorship({
         passageRef: passageRef.trim(),
-        passageText: passageText.trim(),
         studyInsights,
       });
 
@@ -74,7 +68,6 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
       setCurrentStep('Compilando plano devocional...');
       const devotionalPlan = await backend.devotional.compileDevotional({
         passageRef: passageRef.trim(),
-        passageText: passageText.trim(),
         meditation,
         prayer,
         study,
@@ -151,7 +144,7 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
             Criar Plano Devocional
           </CardTitle>
           <CardDescription>
-            Insira uma passagem bíblica para gerar um plano devocional completo com 
+            Insira uma referência bíblica para gerar um plano devocional completo com 
             meditação, oração, estudo e adoração.
           </CardDescription>
         </CardHeader>
@@ -165,17 +158,6 @@ export function DevotionalForm({ onDevotionalGenerated, isGenerating, setIsGener
                 value={passageRef}
                 onChange={(e) => setPassageRef(e.target.value)}
                 disabled={isGenerating}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="passageText">Texto da Passagem</Label>
-              <Textarea
-                id="passageText"
-                value={passageText}
-                onChange={(e) => setPassageText(e.target.value)}
-                disabled={isGenerating}
-                rows={8}
               />
             </div>
 

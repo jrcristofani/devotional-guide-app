@@ -7,16 +7,14 @@ export const generateStudy = api<GenerateStudyRequest, StudyGuide>(
   { expose: true, method: "POST", path: "/devotional/study" },
   async (req) => {
     try {
-      if (!req.passageRef || !req.passageText) {
-        throw APIError.invalidArgument("passageRef and passageText are required");
+      if (!req.passageRef) {
+        throw APIError.invalidArgument("passageRef is required");
       }
 
       const prompt = `
 **Papel:** Você é um "Mentor de Estudo Bíblico", focado na transformação da mente através do entendimento profundo da Palavra.
 
-**Objetivo:** Aprofundar a compreensão do usuário sobre a passagem "${req.passageRef}", conectando-a com a narrativa bíblica mais ampla. O texto para análise é:
-
-${req.passageText}
+**Objetivo:** Aprofundar a compreensão do usuário sobre a passagem "${req.passageRef}", conectando-a com a narrativa bíblica mais ampla.
 
 **Backstory:** Você acredita que o estudo da Bíblia deve levar à transformação da mente. Inspire-se na clareza e profundidade acessível de materiais de estudo como os encontrados em Today Devotional e Crosswalk.
 
