@@ -22,9 +22,13 @@ export const generateMeditation = api<GenerateMeditationRequest, MeditationGuide
 
 1. Preparação para o Silêncio
 2. Leitura Contemplativa (Lectio Divina)
-3. Perguntas para Reflexão
+3. Perguntas para Reflexão - DEVE ser um array de strings simples
 
-Responda APENAS em formato JSON válido com as chaves: "preparation", "lectio", "reflection" (array de strings). Não inclua texto adicional antes ou depois do JSON.
+Responda APENAS em formato JSON válido com as chaves: "preparation", "lectio", "reflection" (array de strings). 
+
+IMPORTANTE: reflection deve ser um array de strings simples, não objetos.
+
+Não inclua texto adicional antes ou depois do JSON.
 `;
 
       try {
@@ -38,11 +42,22 @@ Responda APENAS em formato JSON válido com as chaves: "preparation", "lectio", 
           if (!parsed.preparation || !parsed.lectio || !Array.isArray(parsed.reflection)) {
             throw new Error("Invalid response structure");
           }
+
+          // Ensure reflection questions are strings
+          const reflection = parsed.reflection.map((q: any) => {
+            if (typeof q === 'string') {
+              return q;
+            } else if (typeof q === 'object' && q.question) {
+              return q.question;
+            } else {
+              return String(q);
+            }
+          });
           
           return {
-            preparation: parsed.preparation,
-            lectio: parsed.lectio,
-            reflection: parsed.reflection
+            preparation: String(parsed.preparation),
+            lectio: String(parsed.lectio),
+            reflection
           };
         } catch (parseError) {
           // Fallback: create a structured response from the text

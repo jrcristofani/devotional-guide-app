@@ -24,10 +24,14 @@ ${req.studyInsights}
 
 **Tarefa:** Crie um guia prático de adoração em 2 partes:
 
-1. Chamado à Adoração
-2. Ato de Celebração e Envio
+1. Chamado à Adoração - DEVE ser uma string simples
+2. Ato de Celebração e Envio - DEVE ser uma string simples
 
-Responda APENAS em formato JSON válido com as chaves: "call", "celebration". Não inclua texto adicional antes ou depois do JSON.
+Responda APENAS em formato JSON válido com as chaves: "call", "celebration". 
+
+IMPORTANTE: Ambos os campos devem ser strings simples, não objetos ou arrays.
+
+Não inclua texto adicional antes ou depois do JSON.
 `;
 
       try {
@@ -41,8 +45,8 @@ Responda APENAS em formato JSON válido com as chaves: "call", "celebration". N�
           }
           
           return {
-            call: parsed.call,
-            celebration: parsed.celebration
+            call: String(parsed.call),
+            celebration: String(parsed.celebration)
           };
         } catch (parseError) {
           return {

@@ -24,10 +24,14 @@ ${req.meditationInsights}
 
 **Tarefa:** Crie um guia prático de oração em 2 partes:
 
-1. Oração Pessoal
-2. Prática de Intercessão
+1. Oração Pessoal - DEVE ser uma string simples
+2. Prática de Intercessão - DEVE ser uma string simples
 
-Responda APENAS em formato JSON válido com as chaves: "personal", "intercession". Não inclua texto adicional antes ou depois do JSON.
+Responda APENAS em formato JSON válido com as chaves: "personal", "intercession". 
+
+IMPORTANTE: Ambos os campos devem ser strings simples, não objetos ou arrays.
+
+Não inclua texto adicional antes ou depois do JSON.
 `;
 
       try {
@@ -41,8 +45,8 @@ Responda APENAS em formato JSON válido com as chaves: "personal", "intercession
           }
           
           return {
-            personal: parsed.personal,
-            intercession: parsed.intercession
+            personal: String(parsed.personal),
+            intercession: String(parsed.intercession)
           };
         } catch (parseError) {
           return {
