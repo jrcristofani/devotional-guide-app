@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Heart, MessageCircle, BookOpen, Music, Download } from 'lucide-react';
+import { generateDocx } from '../utils/docx-generator';
 import type { DevotionalPlan } from '~backend/devotional/types';
 
 interface DevotionalDisplayProps {
@@ -11,76 +12,12 @@ interface DevotionalDisplayProps {
 }
 
 export function DevotionalDisplay({ devotionalPlan, onStartNew }: DevotionalDisplayProps) {
-  const handleDownload = () => {
-    const content = generateDevotionalText(devotionalPlan);
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${devotionalPlan.passage.reference.replace(/[^\w\s]/gi, '_')}_devocional.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const generateDevotionalText = (plan: DevotionalPlan): string => {
-    return `${plan.title}
-
-PASSAGEM: ${plan.passage.reference}
-${plan.passage.text ? `"${plan.passage.text}"` : ''}
-
-═══════════════════════════════════════════════════════════════
-
-1. MEDITAÇÃO
-
-Preparação para o Silêncio:
-${plan.meditation.preparation}
-
-Leitura Contemplativa (Lectio Divina):
-${plan.meditation.lectio}
-
-Perguntas para Reflexão:
-${plan.meditation.reflection.map(q => `• ${q}`).join('\n')}
-
-═══════════════════════════════════════════════════════════════
-
-2. ORAÇÃO
-
-Oração Pessoal:
-${plan.prayer.personal}
-
-Prática de Intercessão:
-${plan.prayer.intercession}
-
-═══════════════════════════════════════════════════════════════
-
-3. ESTUDO
-
-Insight Central:
-${plan.study.insight}
-
-Referências Cruzadas:
-${plan.study.crossReferences.map(ref => `• ${ref}`).join('\n')}
-
-Perguntas de Aplicação:
-${plan.study.applicationQuestions.map(q => `• ${q}`).join('\n')}
-
-═══════════════════════════════════════════════════════════════
-
-4. ADORAÇÃO
-
-Chamado à Adoração:
-${plan.worship.call}
-
-Ato de Celebração e Envio:
-${plan.worship.celebration}
-
-═══════════════════════════════════════════════════════════════
-
-⚠️ Este conteúdo foi gerado com base em princípios bíblicos amplamente reconhecidos, mas pode refletir perspectivas diferentes entre as denominações evangélicas.
-Sempre consulte a sua liderança espiritual e a comunidade de fé para aprofundar o discernimento sobre o tema.
-`;
+  const handleDownload = async () => {
+    try {
+      await generateDocx(devotionalPlan);
+    } catch (error) {
+      console.error('Error generating DOCX:', error);
+    }
   };
 
   return (
@@ -266,7 +203,7 @@ Sempre consulte a sua liderança espiritual e a comunidade de fé para aprofunda
           variant="outline"
         >
           <Download className="h-4 w-4" />
-          Download
+          Download DOCX
         </Button>
         <Button 
           onClick={onStartNew}
