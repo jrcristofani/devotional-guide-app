@@ -30,3 +30,12 @@ export interface GetPassageResponse {
   text: string;
   verses: BibleVerse[];
 }
+
+// NVI JSON format interfaces
+export interface NVIBook {
+  abbrev: string;
+  name: string;
+  chapters: string[][];
+}
+
+export type NVIData = NVIBook[];

@@ -30,16 +30,31 @@ export function BibleUpload() {
       // Read file content
       const fileContent = await file.text();
       
-      // Validate JSON structure
+      // Validate JSON structure for NVI format
       try {
         const jsonData = JSON.parse(fileContent);
-        if (!jsonData.books || !Array.isArray(jsonData.books)) {
-          throw new Error("Estrutura JSON inválida");
+        
+        // Check if it's an array (NVI format)
+        if (!Array.isArray(jsonData)) {
+          throw new Error("Estrutura JSON inválida - deve ser um array");
+        }
+        
+        // Check if first item has expected NVI structure
+        if (jsonData.length > 0) {
+          const firstBook = jsonData[0];
+          if (!firstBook.name || !firstBook.abbrev || !Array.isArray(firstBook.chapters)) {
+            throw new Error("Estrutura JSON inválida - formato NVI esperado");
+          }
+          
+          // Check if chapters contain arrays of verses
+          if (firstBook.chapters.length > 0 && !Array.isArray(firstBook.chapters[0])) {
+            throw new Error("Estrutura JSON inválida - capítulos devem ser arrays de versículos");
+          }
         }
       } catch (parseError) {
         toast({
           title: "Arquivo JSON inválido",
-          description: "O arquivo não possui a estrutura esperada da Bíblia.",
+          description: "O arquivo não possui a estrutura esperada da Bíblia NVI. Formato esperado: [{'name': '...', 'abbrev': '...', 'chapters': [[...]]}]",
           variant: "destructive",
         });
         setIsUploading(false);
@@ -97,12 +112,32 @@ export function BibleUpload() {
             </div>
             
             <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">Como obter o arquivo nvi.json:</h4>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Baixe um arquivo JSON da Bíblia NVI de uma fonte confiável</li>
-                <li>• O arquivo deve conter a estrutura: {"{"}"version", "books"[...]{"}"}</li>
-                <li>• Cada livro deve ter capítulos e versículos organizados</li>
-              </ul>
+              <h4 className="font-semibold text-blue-800 mb-2">Formato esperado do arquivo nvi.json:</h4>
+              <div className="text-sm text-blue-700 space-y-2">
+                <p>O arquivo deve ser um array de objetos com a seguinte estrutura:</p>
+                <pre className="bg-white p-2 rounded text-xs overflow-x-auto">
+{`[
+  {
+    "abbrev": "Gn",
+    "name": "Gênesis", 
+    "chapters": [
+      ["No princípio...", "E a terra era..."],
+      ["Assim foram acabados..."]
+    ]
+  },
+  {
+    "abbrev": "Êx",
+    "name": "Êxodo",
+    "chapters": [...]
+  }
+]`}
+                </pre>
+                <ul className="space-y-1">
+                  <li>• Cada livro tem nome, abreviação e capítulos</li>
+                  <li>• Cada capítulo é um array de strings (versículos)</li>
+                  <li>• Os versículos são indexados automaticamente (1, 2, 3...)</li>
+                </ul>
+              </div>
             </div>
 
             {isUploading && (

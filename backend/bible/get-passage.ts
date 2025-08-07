@@ -1,9 +1,38 @@
 import { api, APIError } from "encore.dev/api";
-import { GetPassageRequest, GetPassageResponse, BibleData, BibleVerse } from "./types";
+import { GetPassageRequest, GetPassageResponse, BibleData, BibleVerse, NVIData, NVIBook } from "./types";
 import { bibleBucket } from "./storage";
 import { parseReference, formatVerses } from "./parser";
 
 let cachedBibleData: BibleData | null = null;
+
+function convertNVIToBibleData(nviData: NVIData): BibleData {
+  const books = nviData.map(nviBook => {
+    const chapters = nviBook.chapters.map((chapterVerses, chapterIndex) => {
+      const verses = chapterVerses.map((verseText, verseIndex) => ({
+        book: nviBook.name,
+        chapter: chapterIndex + 1,
+        verse: verseIndex + 1,
+        text: verseText
+      }));
+
+      return {
+        book: nviBook.name,
+        chapter: chapterIndex + 1,
+        verses
+      };
+    });
+
+    return {
+      name: nviBook.name,
+      chapters
+    };
+  });
+
+  return {
+    version: "NVI",
+    books
+  };
+}
 
 async function loadBibleData(): Promise<BibleData> {
   if (cachedBibleData) {
@@ -18,7 +47,10 @@ async function loadBibleData(): Promise<BibleData> {
 
     const buffer = await bibleBucket.download("nvi.json");
     const jsonString = buffer.toString('utf-8');
-    cachedBibleData = JSON.parse(jsonString) as BibleData;
+    const nviData = JSON.parse(jsonString) as NVIData;
+    
+    // Convert NVI format to our internal format
+    cachedBibleData = convertNVIToBibleData(nviData);
     
     return cachedBibleData;
   } catch (error) {
