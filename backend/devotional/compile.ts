@@ -2,6 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { CompileDevotionalRequest, DevotionalPlan } from "./types";
 import { callOpenAI } from "./ai";
 import { normalizeReference } from "./reference-normalizer";
+import { bible } from "~encore/clients";
 
 // Compiles all devotional components into a cohesive plan.
 export const compileDevotional = api<CompileDevotionalRequest, DevotionalPlan>(
@@ -14,7 +15,14 @@ export const compileDevotional = api<CompileDevotionalRequest, DevotionalPlan>(
 
       const normalizedRef = normalizeReference(req.passageRef);
 
-      const prompt = `
+      // Try to get the biblical text from the NVI database
+      let passageText = "";
+      try {
+        const bibleResponse = await bible.getPassage({ reference: normalizedRef });
+        passageText = bibleResponse.text;
+      } catch (bibleError) {
+        // If Bible service fails, try to get text from AI
+        const prompt = `
 **Papel:** Você é um "Editor Devocional".
 
 **Objetivo:** Compilar os guias de Meditação, Oração, Estudo e Adoração em um único plano devocional coeso e bem formatado.
@@ -33,23 +41,30 @@ Para o título, crie apenas um título inspirador e conciso para este devocional
 Para o passageText, forneça o texto completo da passagem bíblica ${normalizedRef}.
 `;
 
+        try {
+          const response = await callOpenAI(prompt);
+          const parsed = JSON.parse(response);
+          
+          if (parsed.passageText) {
+            passageText = parsed.passageText;
+          }
+        } catch (aiError) {
+          // If both Bible service and AI fail, leave text empty
+          passageText = "";
+        }
+      }
+
+      // Generate title using AI
       let title = `Devocional: ${normalizedRef}`;
-      let passageText = "";
-      
       try {
-        const response = await callOpenAI(prompt);
-        const parsed = JSON.parse(response);
-        
-        if (parsed.title) {
-          title = parsed.title.replace(/['"]/g, '');
+        const titlePrompt = `Crie um título inspirador e conciso para um devocional baseado na passagem bíblica ${normalizedRef}. Responda apenas com o título, sem aspas ou formatação adicional.`;
+        const titleResponse = await callOpenAI(titlePrompt);
+        if (titleResponse && titleResponse.trim()) {
+          title = titleResponse.trim().replace(/['"]/g, '');
         }
-        if (parsed.passageText) {
-          passageText = parsed.passageText;
-        }
-      } catch (aiError) {
-        // If AI fails, use fallback title and empty text
+      } catch (titleError) {
+        // Use fallback title if AI fails
         title = `Devocional: ${normalizedRef}`;
-        passageText = "";
       }
 
       return {
